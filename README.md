@@ -34,6 +34,24 @@ Parameters:
 
 You must only use one of the arguments `q`, `name` and `ref`.
 
+### Milestones
+
+This API returns milestones and other railway features with a `railway:position=*` or `railway:position:excat=*` tag
+if they are located on a track with a reference number. The API will return the two closest features within a
+maximum distance of 10 kilometers. The presence of an `operator=*` tag on the tracks is honoured, it will be used to
+distinguish reference numbers used by different infrastructure operators and/or in different countries.
+
+The API only takes tracks without `service=*` (this condition does not apply to tracks with
+`usage=industrial/military/test`) into account.
+
+URL: `/milestone?<PARAMTERS>`
+
+Parameters:
+
+* `ref=<string>`: reference number of the railway route the mileage refers to (in this case, route meas lines as infrastructure, not the services using the tracks), mandatory
+* `position=<float>`: position (can be negative), mandatory
+* `limit=<integer>`: maximum number of results, optional, defaults to 20, must not exceed 200
+
 ## Dependencies and Deployment
 
 This API runs as a Python WSGI application. You need a WSGI server and a web server. For development
@@ -45,9 +63,8 @@ Dependencies:
 * [Werkzeug](https://werkzeug.palletsprojects.com/)
 * [Psycopg2](https://www.psycopg.org/docs/)
 * a PostgreSQL database imported as specified for the [map styles](https://github.com/OpenRailwayMap/OpenRailwayMap-CartoCSS/blob/master/SETUP.md)
-* the SQL script `prepare_api.sql` run against the database
+* the SQL script `prepare.sql` and `prepare_milestone.sql` run against the database
 
 ## License
 
 This project is licensed under the terms of GPLv2 or newer. You can find a copy of version 3 of the
-licese at [COPYING](COPYING).

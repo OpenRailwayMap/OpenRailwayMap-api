@@ -1,19 +1,13 @@
-import json
-import sys
-from werkzeug.wrappers import Response
+# SPDX-License-Identifier: GPL-2.0-or-later
+from openrailwaymap_api.abstract_api import AbstractAPI
 
-MAX_LIMIT = 200
-
-class FacilityAPI:
+class FacilityAPI(AbstractAPI):
     def __init__(self, db_conn):
         self.db_conn = db_conn
         self.search_args = ['q', 'name', 'ref']
         self.data = []
         self.status_code = 200
         self.limit = 20
-
-    def build_response(self):
-        return Response(json.dumps(self.data), status=self.status_code, mimetype='application/json')
 
     def eliminate_duplicates(self, data):
         data.sort(key=lambda k: k['osm_id'])
@@ -48,7 +42,7 @@ class FacilityAPI:
                 self.data = {'type': 'limit_not_integer', 'error': 'Invalid paramter value provided for parameter "limit".', 'detail': 'The provided limit cannot be parsed as an integer value.'}
                 self.status_code = 400
                 return self.build_response()
-            if self.limit > MAX_LIMIT:
+            if self.limit > self.MAX_LIMIT:
                 self.data = {'type': 'limit_too_high', 'error': 'Invalid paramter value provided for parameter "limit".', 'detail': 'Limit is too high. Please set up your own instance to query everything.'}
                 self.status_code = 400
                 return self.build_response()
@@ -59,17 +53,6 @@ class FacilityAPI:
         if args.get('q'):
             self.data = self.eliminate_duplicates(self.search_by_name(args['q']) + self.search_by_ref(args['q']))
         return self.build_response()
-
-
-    def build_result_item_dict(self, description, row):
-        item = {}
-        for i in range(len(row)):
-            if description[i].name == 'tags' and row[i]:
-                for k, v in row[i].items():
-                    item[k] = v
-            else:
-                item[description[i].name] = row[i]
-        return item
 
     def query_has_no_wildcards(self, q):
         if '%' in q or '_' in q:
