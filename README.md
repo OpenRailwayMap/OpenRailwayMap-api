@@ -52,7 +52,9 @@ Parameters:
 * `position=<float>`: position (can be negative), mandatory
 * `limit=<integer>`: maximum number of results, optional, defaults to 20, must not exceed 200
 
-## Dependencies and Deployment
+## Setup
+
+### Dependencies and Deployment
 
 This API runs as a Python WSGI application. You need a WSGI server and a web server. For development
 purposes, you can just run `python3 api.py serve`.
@@ -62,9 +64,40 @@ Dependencies:
 * Python 3
 * [Werkzeug](https://werkzeug.palletsprojects.com/)
 * [Psycopg2](https://www.psycopg.org/docs/)
-* a PostgreSQL database imported as specified for the [map styles](https://github.com/OpenRailwayMap/OpenRailwayMap-CartoCSS/blob/master/SETUP.md)
-* the SQL script `prepare.sql` and `prepare_milestone.sql` run against the database
+
+### Installation
+
+Install the dependencies listed above:
+
+```shell
+apt install python3-werkzeug python3-psycopg2
+```
+
+If you want to deploy it on a server (not just run in development mode locally):
+
+```shell
+apt install apache2 libapache2-mod-wsgi-py3
+```
+
+Import OpenStreetMap data as described in the map style setup guide. You have to follow the following sections only:
+
+* Dependencies (Kosmtik, Nik4 and PyYAML are not required)
+* Database Setup
+* Load OSM Data into the Database
+
+Create database views:
+
+```shell
+sudo -u osmimport psql -d gis -f prepare.sql
+sudo -u osmimport psql -d gis -f prepare_milestone.sql
+
+Create a database user for the user running the API (either the user running Apache – often called www-data or httpd – or your user account in dev mode) and grant read permissions to this user:
+
+```shell
+createuser $USERNAME
+sudo -u postgres psql -d gis -c "GRANT SELECT ON TABLES IN SCHEMA PUBLIC TO $USERNAME;"
+```
 
 ## License
 
-This project is licensed under the terms of GPLv2 or newer. You can find a copy of version 3 of the
+This project is licensed under the terms of GPLv2 or newer. You can find a copy of version 3 of the license in the [COPYING](COPYING) file.
