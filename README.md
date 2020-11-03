@@ -10,9 +10,10 @@ it serves to the website www.openrailwaymap.org.
 
 * Facility search
   * Search facilities (stations, halts, tram stops, yards, sidings, crossovers) including disused, abandoned,
-    razed and proposed ones and those under construction.
+    razed and proposed ones and those under construction by name or reference.
   * Fulltext search using PostgreSQL's full text search.
   * Fast (< 100 ms per request)
+* Mileage search: Search the combination of line number and mileage.
 
 ## Delevopment goals
 
