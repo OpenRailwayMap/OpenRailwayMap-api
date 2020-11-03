@@ -1,4 +1,6 @@
 -- SPDX-License-Identifier: GPL-2.0-or-later
+CREATE EXTENSION IF NOT EXISTS unaccent;
+
 CREATE OR REPLACE VIEW openrailwaymap_ref AS
   SELECT
       osm_id,
