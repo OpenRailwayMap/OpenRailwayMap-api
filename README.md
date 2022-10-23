@@ -89,7 +89,7 @@ Import OpenStreetMap data as described in the map style setup guide. You have to
 Create database views:
 
 ```shell
-sudo -u osmimport psql -d gis -f prepare.sql
+sudo -u osmimport psql -d gis -f prepare_facilities.sql
 sudo -u osmimport psql -d gis -f prepare_milestone.sql
 
 Create a database user for the user running the API (either the user running Apache – often called www-data or httpd – or your user account in dev mode) and grant read permissions to this user:
