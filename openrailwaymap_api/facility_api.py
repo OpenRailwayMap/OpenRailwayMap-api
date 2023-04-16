@@ -66,12 +66,21 @@ class FacilityAPI(AbstractAPI):
         with self.db_conn.cursor() as cursor:
             data = []
             # We do not sort the result although we use DISTINCT ON because osm_id is sufficient to sort out duplicates.
-            sql_query = """SELECT DISTINCT ON (osm_id)
-                {}, ST_X(ST_Transform(geom, 4326)) AS latitude, ST_Y(ST_Transform(geom, 4326)) AS longitude
-              FROM openrailwaymap_facilities_for_search
-              WHERE terms @@ to_tsquery('simple', unaccent(%s))
-              LIMIT %s;""".format(self.sql_select_fieldlist())
-            cursor.execute(sql_query, (q, self.limit))
+            sql_query = """SELECT
+                {fields}, latitude, longitude, rank
+                FROM (
+                  SELECT DISTINCT ON (osm_id)
+                    {fields}, latitude, longitude, rank
+                  FROM (
+                    SELECT
+                        {fields}, ST_X(ST_Transform(geom, 4326)) AS latitude, ST_Y(ST_Transform(geom, 4326)) AS longitude, openrailwaymap_name_rank(to_tsquery('simple', unaccent(%s)), terms, route_count, railway, station) AS rank
+                      FROM openrailwaymap_facilities_for_search
+                      WHERE terms @@ to_tsquery('simple', unaccent(%s))
+                    ) AS a
+                  ) AS b
+                  ORDER BY rank DESC NULLS LAST
+              LIMIT %s;""".format(fields=self.sql_select_fieldlist())
+            cursor.execute(sql_query, (q, q, self.limit))
             results = cursor.fetchall()
             for r in results:
                 data.append(self.build_result_item_dict(cursor.description, r))

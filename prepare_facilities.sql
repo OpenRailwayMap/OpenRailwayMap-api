@@ -7,6 +7,7 @@ CREATE OR REPLACE VIEW openrailwaymap_ref AS
       name,
       tags,
       railway,
+      tags->'station' as station,
       ref,
       way AS geom
     FROM planet_osm_point
@@ -32,19 +33,25 @@ CREATE MATERIALIZED VIEW IF NOT EXISTS openrailwaymap_facilities_for_search AS
       osm_id,
       to_tsvector('simple', unaccent(value)) AS terms,
       name,
+      key AS name_key,
+      value AS name_value,
       tags,
       railway,
+      station,
       ref,
+      route_count,
       geom
     FROM (
-      SELECT DISTINCT ON (osm_id, key, value, tags, name, railway, ref, geom)
+      SELECT DISTINCT ON (osm_id, key, value, tags, name, railway, station, ref, route_count, geom)
           osm_id,
           (each(updated_tags)).key AS key,
           (each(updated_tags)).value AS value,
           tags,
           name,
           railway,
+          station,
           ref,
+          route_count,
           geom
         FROM (
           SELECT
@@ -56,9 +63,11 @@ CREATE MATERIALIZED VIEW IF NOT EXISTS openrailwaymap_facilities_for_search AS
               name,
               tags,
               railway,
-              ref,
+              tags->'station' AS station,
+              tags->'ref' AS ref,
+              route_count,
               way AS geom
-            FROM planet_osm_point
+            FROM stations_with_route_counts
             WHERE
               railway IN ('station', 'halt', 'tram_stop', 'service_station', 'yard', 'junction', 'spur_junction', 'crossover', 'site', 'tram_stop')
               OR tags->'disused:railway' IN ('station', 'halt', 'tram_stop', 'service_station', 'yard', 'junction', 'spur_junction', 'crossover', 'site', 'tram_stop')
@@ -82,3 +91,19 @@ CREATE MATERIALIZED VIEW IF NOT EXISTS openrailwaymap_facilities_for_search AS
       OR key LIKE 'old_name:%';
 
 CREATE INDEX IF NOT EXISTS openrailwaymap_facilities_name_index ON openrailwaymap_facilities_for_search USING gin(terms);
+
+CREATE OR REPLACE FUNCTION openrailwaymap_name_rank(tsquery_str tsquery, tsvec_col tsvector, route_count INTEGER, railway TEXT, station TEXT) RETURNS INTEGER AS $$
+DECLARE
+  factor FLOAT;
+BEGIN
+  IF railway = 'tram_stop' OR station IN ('light_rail', 'monorail', 'subway') THEN
+    factor := 0.5;
+  ELSIF railway = 'halt' THEN
+    factor := 0.8;
+  END IF;
+  IF tsvec_col @@ tsquery_str THEN
+    factor := 2.0;
+  END IF;
+  RETURN (factor * COALESCE(route_count, 0))::INTEGER;
+END;
+$$ LANGUAGE plpgsql;
