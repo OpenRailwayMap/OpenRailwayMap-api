@@ -6,7 +6,7 @@ import psycopg2.extras
 import json
 import sys
 from werkzeug.exceptions import HTTPException, NotFound
-from werkzeug.routing import Map, Rule, NotFound
+from werkzeug.routing import Map, Rule
 from werkzeug.wrappers import Request, Response
 from openrailwaymap_api.facility_api import FacilityAPI
 from openrailwaymap_api.milestone_api import MilestoneAPI
