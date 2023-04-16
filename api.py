@@ -26,12 +26,17 @@ class OpenRailwayMapAPI:
             Rule('/milestone', endpoint=MilestoneAPI, methods=('GET',)),
         ])
 
+    def ensure_db_connection_alive(self):
+        if self.db_conn.closed != 0:
+            self.db_conn = connect_db()
+
     def dispatch_request(self, environ, start_response):
         request = Request(environ)
         urls = self.url_map.bind_to_environ(environ)
         response = None
         try:
             endpoint, args = urls.match()
+            self.ensure_db_connection_alive()
             response = endpoint(self.db_conn)(request.args)
         except HTTPException as e:
             response = e(environ, start_response)
