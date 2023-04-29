@@ -1,6 +1,12 @@
 -- SPDX-License-Identifier: GPL-2.0-or-later
 CREATE EXTENSION IF NOT EXISTS unaccent;
 
+CREATE OR REPLACE FUNCTION openrailwaymap_hyphen_to_space(str TEXT) RETURNS TEXT AS $$
+BEGIN
+  RETURN regexp_replace(str, '(\w)-(\w)', '\1 \2', 'g');
+END;
+$$ LANGUAGE plpgsql IMMUTABLE;
+
 CREATE OR REPLACE VIEW openrailwaymap_ref AS
   SELECT
       osm_id,
@@ -31,7 +37,7 @@ CREATE INDEX IF NOT EXISTS openrailwaymap_ref_railway_ref_idx
 CREATE MATERIALIZED VIEW IF NOT EXISTS openrailwaymap_facilities_for_search AS
   SELECT
       osm_id,
-      to_tsvector('simple', unaccent(value)) AS terms,
+      to_tsvector('simple', unaccent(openrailwaymap_hyphen_to_space(value))) AS terms,
       name,
       key AS name_key,
       value AS name_value,
@@ -106,4 +112,4 @@ BEGIN
   END IF;
   RETURN (factor * COALESCE(route_count, 0))::INTEGER;
 END;
-$$ LANGUAGE plpgsql;
+$$ LANGUAGE plpgsql IMMUTABLE;

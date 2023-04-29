@@ -73,9 +73,9 @@ class FacilityAPI(AbstractAPI):
                     {fields}, latitude, longitude, rank
                   FROM (
                     SELECT
-                        {fields}, ST_X(ST_Transform(geom, 4326)) AS latitude, ST_Y(ST_Transform(geom, 4326)) AS longitude, openrailwaymap_name_rank(to_tsquery('simple', unaccent(%s)), terms, route_count, railway, station) AS rank
+                        {fields}, ST_X(ST_Transform(geom, 4326)) AS latitude, ST_Y(ST_Transform(geom, 4326)) AS longitude, openrailwaymap_name_rank(phraseto_tsquery('simple', unaccent(openrailwaymap_hyphen_to_space(%s))), terms, route_count, railway, station) AS rank
                       FROM openrailwaymap_facilities_for_search
-                      WHERE terms @@ to_tsquery('simple', unaccent(%s))
+                      WHERE terms @@ phraseto_tsquery('simple', unaccent(openrailwaymap_hyphen_to_space(%s)))
                     ) AS a
                   ) AS b
                   ORDER BY rank DESC NULLS LAST
