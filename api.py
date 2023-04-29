@@ -5,7 +5,7 @@ import psycopg2
 import psycopg2.extras
 import json
 import sys
-from werkzeug.exceptions import HTTPException, NotFound
+from werkzeug.exceptions import HTTPException, NotFound, InternalServerError
 from werkzeug.routing import Map, Rule
 from werkzeug.wrappers import Request, Response
 from openrailwaymap_api.facility_api import FacilityAPI
@@ -39,9 +39,9 @@ class OpenRailwayMapAPI:
             self.ensure_db_connection_alive()
             response = endpoint(self.db_conn)(request.args)
         except HTTPException as e:
-            response = e(environ, start_response)
-#        except Exception as e:
-#            response = Response(json.dumps({'status': 'error', 'msg': 'Other exception', 'detail': str(e)}), status=500, mimetype='application/json')
+            return e
+        except Exception as e:
+            return InternalServerError()
         finally:
             if not response:
                 self.db_conn.close()
