@@ -13,15 +13,17 @@ class MilestoneAPI(AbstractAPI):
     def __call__(self, args):
         data = []
         # Validate search arguments
+        ref = args.get('ref')
+        position = args.get('position')
+        if ref is None or position is None:
+            self.data = {'type': 'no_query_arg', 'error': 'One or multiple mandatory parameters are missing.', 'detail': 'You have to provide both "ref" and "position".'}
+            self.status_code = 400
+            return self.build_response()
         self.route_ref = args.get('ref')
         try:
             self.position = float(args.get('position'))
         except ValueError:
             self.data = {'type': 'position_not_integer', 'error': 'Invalid value provided for parameter "position".', 'detail': 'The provided position cannot be parsed as a float.'}
-            self.status_code = 400
-            return self.build_response()
-        if not self.route_ref or self.position is None:
-            self.data = {'type': 'no_query_arg', 'error': 'One or multiple mandatory parameters are missing.', 'detail': 'You have to provide both "ref" and "position".'}
             self.status_code = 400
             return self.build_response()
         if 'limit' in args:
