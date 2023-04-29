@@ -7,7 +7,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql IMMUTABLE;
 
-CREATE OR REPLACE VIEW openrailwaymap_ref AS
+CREATE MATERIALIZED VIEW IF NOT EXISTS openrailwaymap_ref AS
   SELECT
       osm_id,
       name,
@@ -15,6 +15,7 @@ CREATE OR REPLACE VIEW openrailwaymap_ref AS
       railway,
       tags->'station' as station,
       ref,
+      tags->'railway:ref' as railway_ref,
       way AS geom
     FROM planet_osm_point
     WHERE
@@ -25,14 +26,8 @@ CREATE OR REPLACE VIEW openrailwaymap_ref AS
       OR tags->'razed:railway' IN ('station', 'halt', 'tram_stop', 'service_station', 'yard', 'junction', 'spur_junction', 'crossover', 'site', 'tram_stop');
 
 CREATE INDEX IF NOT EXISTS openrailwaymap_ref_railway_ref_idx
-  ON planet_osm_point
-  USING BTREE((tags->'railway:ref'))
-  WHERE
-    railway IN ('station', 'halt', 'tram_stop', 'service_station', 'yard', 'junction', 'spur_junction', 'crossover', 'site', 'tram_stop')
-    OR tags->'disused:railway' IN ('station', 'halt', 'tram_stop', 'service_station', 'yard', 'junction', 'spur_junction', 'crossover', 'site', 'tram_stop')
-    OR tags->'abandoned:railway' IN ('station', 'halt', 'tram_stop', 'service_station', 'yard', 'junction', 'spur_junction', 'crossover', 'site', 'tram_stop')
-    OR tags->'proposed:railway' IN ('station', 'halt', 'tram_stop', 'service_station', 'yard', 'junction', 'spur_junction', 'crossover', 'site', 'tram_stop')
-    OR tags->'razed:railway' IN ('station', 'halt', 'tram_stop', 'service_station', 'yard', 'junction', 'spur_junction', 'crossover', 'site', 'tram_stop');
+  ON openrailwaymap_ref
+  USING BTREE(railway_ref);
 
 CREATE MATERIALIZED VIEW IF NOT EXISTS openrailwaymap_facilities_for_search AS
   SELECT

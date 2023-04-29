@@ -93,7 +93,7 @@ class FacilityAPI(AbstractAPI):
             sql_query = """SELECT DISTINCT ON (osm_id)
               {}, ST_X(ST_Transform(geom, 4326)) AS latitude, ST_Y(ST_Transform(geom, 4326)) AS longitude
               FROM openrailwaymap_ref
-              WHERE tags->'railway:ref' = %s
+              WHERE railway_ref = %s
               LIMIT %s;""".format(self.sql_select_fieldlist())
             cursor.execute(sql_query, (ref, self.limit))
             results = cursor.fetchall()
