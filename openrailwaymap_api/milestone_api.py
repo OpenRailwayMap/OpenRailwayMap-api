@@ -49,7 +49,7 @@ class MilestoneAPI(AbstractAPI):
                              position,
                              ST_X(geom) AS longitude,
                              ST_Y(geom) As latitude,
-                             route_ref,
+                             route_ref AS ref,
                              operator
                            FROM (
                              SELECT
