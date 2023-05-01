@@ -8,7 +8,7 @@ class AbstractAPI:
     MAX_LIMIT = 200
 
     def build_response(self):
-        return Response(json.dumps(self.data), status=self.status_code, mimetype='application/json')
+        return Response(json.dumps(self.data), status=self.status_code, mimetype='application/json', headers=[('Access-Control-Allow-Origin', '*')])
 
     def build_result_item_dict(self, description, row):
         item = {}
