@@ -47,8 +47,8 @@ class MilestoneAPI(AbstractAPI):
             sql_query = """SELECT
                              osm_id,
                              position,
-                             ST_X(geom) AS longitude,
-                             ST_Y(geom) As latitude,
+                             ST_X(geom) AS latitude,
+                             ST_Y(geom) As longitude,
                              route_ref AS ref,
                              operator
                            FROM (
