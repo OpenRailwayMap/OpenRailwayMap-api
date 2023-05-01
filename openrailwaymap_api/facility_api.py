@@ -4,7 +4,7 @@ from openrailwaymap_api.abstract_api import AbstractAPI
 class FacilityAPI(AbstractAPI):
     def __init__(self, db_conn):
         self.db_conn = db_conn
-        self.search_args = ['q', 'name', 'ref']
+        self.search_args = ['q', 'name', 'ref', 'uic_ref']
         self.data = []
         self.status_code = 200
         self.limit = 20
@@ -50,8 +50,10 @@ class FacilityAPI(AbstractAPI):
             self.data = self.search_by_name(args['name'])
         if args.get('ref'):
             self.data = self.search_by_ref(args['ref'])
+        if args.get('uic_ref'):
+            self.data = self.search_by_uic_ref(args['uic_ref'])
         if args.get('q'):
-            self.data = self.eliminate_duplicates(self.search_by_name(args['q']) + self.search_by_ref(args['q']))
+            self.data = self.eliminate_duplicates(self.search_by_name(args['q']) + self.search_by_ref(args['q']) + self.search_by_uic_ref(args['q']))
         return self.build_response()
 
     def query_has_no_wildcards(self, q):
@@ -86,21 +88,26 @@ class FacilityAPI(AbstractAPI):
                 data.append(self.build_result_item_dict(cursor.description, r))
         return data
 
-    def search_by_ref(self, ref):
+    def _search_by_ref(self, search_key, ref):
         with self.db_conn.cursor() as cursor:
             data = []
             # We do not sort the result although we use DISTINCT ON because osm_id is sufficient to sort out duplicates.
             sql_query = """SELECT DISTINCT ON (osm_id)
               {}, ST_X(ST_Transform(geom, 4326)) AS latitude, ST_Y(ST_Transform(geom, 4326)) AS longitude
               FROM openrailwaymap_ref
-              WHERE railway_ref = %s
-              LIMIT %s;""".format(self.sql_select_fieldlist())
+              WHERE {} = %s
+              LIMIT %s;""".format(self.sql_select_fieldlist(), search_key)
             cursor.execute(sql_query, (ref, self.limit))
             results = cursor.fetchall()
             for r in results:
                 data.append(self.build_result_item_dict(cursor.description, r))
         return data
 
+    def search_by_ref(self, ref):
+        return self._search_by_ref("railway_ref", ref)
+
+    def search_by_uic_ref(self, ref):
+        return self._search_by_ref("uic_ref", ref)
 
     def sql_select_fieldlist(self):
         return "osm_id, name, railway, ref, tags"

@@ -16,18 +16,26 @@ CREATE MATERIALIZED VIEW IF NOT EXISTS openrailwaymap_ref AS
       tags->'station' as station,
       ref,
       tags->'railway:ref' as railway_ref,
+      tags->'uic_ref' as uic_ref,
       way AS geom
     FROM planet_osm_point
     WHERE
-      railway IN ('station', 'halt', 'tram_stop', 'service_station', 'yard', 'junction', 'spur_junction', 'crossover', 'site', 'tram_stop')
-      OR tags->'disused:railway' IN ('station', 'halt', 'tram_stop', 'service_station', 'yard', 'junction', 'spur_junction', 'crossover', 'site', 'tram_stop')
-      OR tags->'abandoned:railway' IN ('station', 'halt', 'tram_stop', 'service_station', 'yard', 'junction', 'spur_junction', 'crossover', 'site', 'tram_stop')
-      OR tags->'proposed:railway' IN ('station', 'halt', 'tram_stop', 'service_station', 'yard', 'junction', 'spur_junction', 'crossover', 'site', 'tram_stop')
-      OR tags->'razed:railway' IN ('station', 'halt', 'tram_stop', 'service_station', 'yard', 'junction', 'spur_junction', 'crossover', 'site', 'tram_stop');
+      (tags ? 'railway:ref' OR tags ? 'uic_ref')
+      AND (
+        railway IN ('station', 'halt', 'tram_stop', 'service_station', 'yard', 'junction', 'spur_junction', 'crossover', 'site', 'tram_stop')
+        OR tags->'disused:railway' IN ('station', 'halt', 'tram_stop', 'service_station', 'yard', 'junction', 'spur_junction', 'crossover', 'site', 'tram_stop')
+        OR tags->'abandoned:railway' IN ('station', 'halt', 'tram_stop', 'service_station', 'yard', 'junction', 'spur_junction', 'crossover', 'site', 'tram_stop')
+        OR tags->'proposed:railway' IN ('station', 'halt', 'tram_stop', 'service_station', 'yard', 'junction', 'spur_junction', 'crossover', 'site', 'tram_stop')
+        OR tags->'razed:railway' IN ('station', 'halt', 'tram_stop', 'service_station', 'yard', 'junction', 'spur_junction', 'crossover', 'site', 'tram_stop')
+      );
 
 CREATE INDEX IF NOT EXISTS openrailwaymap_ref_railway_ref_idx
   ON openrailwaymap_ref
   USING BTREE(railway_ref);
+
+CREATE INDEX IF NOT EXISTS openrailwaymap_ref_uic_ref_idx
+  ON openrailwaymap_ref
+  USING BTREE(uic_ref);
 
 CREATE MATERIALIZED VIEW IF NOT EXISTS openrailwaymap_facilities_for_search AS
   SELECT
