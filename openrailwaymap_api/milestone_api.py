@@ -8,7 +8,7 @@ class MilestoneAPI(AbstractAPI):
         self.position = None
         self.data = []
         self.status_code = 200
-        self.limit = 20
+        self.limit = 2
 
     def __call__(self, args):
         data = []
