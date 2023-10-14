@@ -11,49 +11,53 @@ END;
 $$ LANGUAGE plpgsql;
 
 CREATE MATERIALIZED VIEW IF NOT EXISTS openrailwaymap_milestones AS
-  SELECT osm_id, position, precision, railway, name, ref, tags, geom
+  SELECT DISTINCT ON (osm_id) osm_id, position, precision, railway, name, ref, tags, geom
     FROM (
-      SELECT
-          osm_id,
-          railway_api_valid_float(unnest(string_to_array(tags->'railway:position', ';'))) AS position,
-          1::SMALLINT AS precision,
-          railway,
-          name,
-          ref,
-          tags,
-          way AS geom
-        FROM planet_osm_point
-        WHERE
-          (
-            railway IS NOT NULL
-            OR tags?'disused:railway'
-            OR tags?'abandoned:railway'
-            OR tags?'construction:railway'
-            OR tags?'proposed:railway'
-            OR tags?'razed:railway'
-          ) AND tags?'railway:position'
-      UNION ALL
-      SELECT
-          osm_id,
-          railway_api_valid_float(unnest(string_to_array(tags->'railway:position:exact', ';'))) AS position,
-          3::SMALLINT AS precision,
-          railway,
-          name,
-          ref,
-          tags,
-          way AS geom
-        FROM planet_osm_point
-        WHERE
-          (
-            railway IS NOT NULL
-            OR tags?'disused:railway'
-            OR tags?'abandoned:railway'
-            OR tags?'construction:railway'
-            OR tags?'proposed:railway'
-            OR tags?'razed:railway'
-          ) AND tags?'railway:position:exact'
-      ) AS features_with_position
-    WHERE position IS NOT NULL;
+      SELECT osm_id, position, precision, railway, name, ref, tags, geom
+        FROM (
+          SELECT
+              osm_id,
+              railway_api_valid_float(unnest(string_to_array(tags->'railway:position', ';'))) AS position,
+              1::SMALLINT AS precision,
+              railway,
+              name,
+              ref,
+              tags,
+              way AS geom
+            FROM planet_osm_point
+            WHERE
+              (
+                railway IS NOT NULL
+                OR tags?'disused:railway'
+                OR tags?'abandoned:railway'
+                OR tags?'construction:railway'
+                OR tags?'proposed:railway'
+                OR tags?'razed:railway'
+              ) AND tags?'railway:position'
+          UNION ALL
+          SELECT
+              osm_id,
+              railway_api_valid_float(unnest(string_to_array(tags->'railway:position:exact', ';'))) AS position,
+              3::SMALLINT AS precision,
+              railway,
+              name,
+              ref,
+              tags,
+              way AS geom
+            FROM planet_osm_point
+            WHERE
+              (
+                railway IS NOT NULL
+                OR tags?'disused:railway'
+                OR tags?'abandoned:railway'
+                OR tags?'construction:railway'
+                OR tags?'proposed:railway'
+                OR tags?'razed:railway'
+              ) AND tags?'railway:position:exact'
+          ) AS features_with_position
+        WHERE position IS NOT NULL
+        ORDER BY osm_id ASC, precision DESC
+      ) AS duplicates_merged;
 
 CREATE INDEX IF NOT EXISTS openrailwaymap_milestones_geom_idx
   ON openrailwaymap_milestones
