@@ -100,9 +100,9 @@ class MilestoneAPI(AbstractAPI):
                                      ) AS unique_milestones
                                  ) AS top_of_array
                              ) AS ranked
-                             WHERE grouped_rank <= 2
+                             WHERE grouped_rank <= %s
                              LIMIT %s;"""
-            cursor.execute(sql_query, (self.position, self.route_ref, self.position, self.position, self.limit))
+            cursor.execute(sql_query, (self.position, self.route_ref, self.position, self.position, self.limit, self.limit))
             results = cursor.fetchall()
             for r in results:
                 data.append(self.build_result_item_dict(cursor.description, r))
