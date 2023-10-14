@@ -23,7 +23,7 @@ class MilestoneAPI(AbstractAPI):
         try:
             self.position = float(args.get('position'))
         except ValueError:
-            self.data = {'type': 'position_not_integer', 'error': 'Invalid value provided for parameter "position".', 'detail': 'The provided position cannot be parsed as a float.'}
+            self.data = {'type': 'position_not_float', 'error': 'Invalid value provided for parameter "position".', 'detail': 'The provided position cannot be parsed as a float.'}
             self.status_code = 400
             return self.build_response()
         if 'limit' in args:
