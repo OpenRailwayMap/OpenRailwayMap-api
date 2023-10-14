@@ -26,32 +26,143 @@ and aim to make as much use as possible of indexes in the database.
 
 URL: `/facility?<PARAMETERS>`
 
-Parameters:
+The facility endpoint returns detail of a facility (station, junction, yard, …) by its name, UIC reference or reference.
 
-* `q=<string>`: search term (will be looked up in all `name=*` tags and `railway:ref=*`.
+The request must contain exactly one of the following parameters because they are mutually exclusive:
+
+* `q=<string>`: search term (will be looked up in all `name=*` tags, `railway:ref=*` and `uic_ref=*`).
 * `name=<string>`: search term (name search only)
 * `ref=<string>`: serach by official facility reference number/code only
-* `limit=<integer>`: maximum number of results, optional, defaults to 20
+* `uic_ref=<string>`: search by UIC reference number of a station (uses OSM tag `uic_ref=*`)
 
-You must only use one of the arguments `q`, `name` and `ref`.
+Optional parameter:
+
+* `limit=<integer>`: maximum number of results, optional, defaults to 20, must not exceed 200
+
+It takes the first keyword of (name,uicref,ref) and the optional the operator to search for the data.
+
+The API returns JSON formatted data with following fields:
+
+  * `latitude`: latitude
+  * `longitude`: longitude
+  * `osm_id`: OSM node ID
+  * `rank`: an importance rank calculated by taking the public transport route relations into account using this station/halt
+  * All OSM tags present on this object. The following tags are very often in use. See the OSM wiki and Taginfo for a more comprehensive list of possible tags.
+    * `name`: name
+    * `uic_name`: UIC station name
+    * `railway:ref`: reference assigned by the operator of the infrastructure
+    * `railway`: type of the facility following [Tagging rules](https://wiki.openstreetmap.org/wiki/OpenRailwayMap/Tagging#Operating_Sites)), e.g. `station`, `halt`, `junction`, `yard`.
+    * `operator`: operator of the infrastructure
+
+Example:
+
+Request: `GET https://api.openrailwaymap.org/v2/facility?name=Karlsruhe&limit=1`
+
+Response:
+
+```json
+[
+  {
+    "osm_id": 2574283615,
+    "name": "Karlsruhe Hauptbahnhof",
+    "railway": "station",
+    "ref": null,
+    "iata": "KJR",
+    "uic_ref": "8000191",
+    "website": "https://www.bahnhof.de/bahnhof-de/bahnhof/Karlsruhe-Hbf-1019530",
+    "operator": "DB Station&Service AG",
+    "wikidata": "Q688541",
+    "iata:note": "AIRail Flughafen",
+    "max_level": "1",
+    "min_level": "-1",
+    "platforms": "7",
+    "ref:IFOPT": "de:08212:90",
+    "wikipedia": "de:Karlsruhe Hauptbahnhof",
+    "short_name": "Karlsruhe Hbf",
+    "wheelchair": "yes",
+    "railway:ref": "RK",
+    "ref:station": "3107",
+    "internet_access": "wlan",
+    "public_transport": "station",
+    "internet_access:fee": "no",
+    "internet_access:ssid": "Telekom",
+    "internet_access:operator": "Deutsche Telekom AG",
+    "railway:station_category": "1",
+    "internet_access:fee:description": "30min kostenlos",
+    "latitude": 8.4020518,
+    "longitude": 48.9936163996939,
+    "rank": 176
+  }
+]
+```
 
 ### Milestones
 
-This API returns milestones and other railway features with a `railway:position=*` or `railway:position:excat=*` tag
-if they are located on a track with a reference number. The API will return the two closest features within a
-maximum distance of 10 kilometers. The presence of an `operator=*` tag on the tracks is honoured, it will be used to
+The milestone endpoint returns the position of milestones or other items such as signals or level crossings with a mapped position on a line.
+
+The API will return the features within a maximum distance of 10 km (hardcoded). The presence of an `operator=*` tag on the tracks is honoured, it will be used to
 distinguish reference numbers used by different infrastructure operators and/or in different countries.
 
-The API only takes tracks without `service=*` (this condition does not apply to tracks with
-`usage=industrial/military/test`) into account.
+Mileage is read from the OSM tags `railway:position=*` and `railway:position:exact=*` with precedence of the exact mileage. The tracks must be tagged with a reference number (OSM tag `ref=*`).
 
-URL: `/milestone?<PARAMTERS>`
+The tracks must not tagged with `service=*` (this condition does not apply to tracks with `usage=industrial/military/test`).
 
-Parameters:
+Negative mileage is supported but gaps in mileage or duplicated positions (if railway lines are reroute) are not supported. For example, you cannot query for `16.8+200` or things like that.
+
+URL: `/milestone?<PARAMETERS>`
+
+Mandatory parameters:
 
 * `ref=<string>`: reference number of the railway route the mileage refers to (in this case, route meas lines as infrastructure, not the services using the tracks), mandatory
 * `position=<float>`: position (can be negative), mandatory
-* `limit=<integer>`: maximum number of results, optional, defaults to 20, must not exceed 200
+
+Optional parameter:
+
+* `limit=<integer>`: maximum number of results, optional, defaults to 2, must not exceed 200
+
+The API returns JSON formatted data with following fields:
+
+  * `osm_id`: OSM node ID
+  * `latitude`: latitude
+  * `longitude`: longitude
+  * `position`: Mileage of the feature
+  * `railway`: type of the facility following [Tagging rules](https://wiki.openstreetmap.org/wiki/OpenRailwayMap/Tagging#Operating_Sites)), e.g. `milestone`, `level_crossing`, `signal`.
+  * `ref`: Reference number of the railway line the feature is located on.
+  * `operator`: operator of the infrastructure
+
+Example:
+
+Request: `GET https://api.openrailwaymap.org/v2/milestone?ref=4201&position=18.4`
+
+Response:
+
+```json
+[
+  {
+    "osm_id": 3479484133,
+    "railway": "milestone",
+    "position": 18.405,
+    "latitude": 8.7064769,
+    "longitude": 49.0315238996845,
+    "ref": "4201",
+    "operator": "Albtal-Verkehrs-Gesellschaft mbH"
+  },
+  {
+    "osm_id": 3479484134,
+    "railway": "milestone",
+    "position": 18.2,
+    "latitude": 8.7045853,
+    "longitude": 49.0327703996842,
+    "ref": "4201",
+    "operator": "Albtal-Verkehrs-Gesellschaft mbH"
+  }
+]
+```
+
+### Network length
+
+The previous (v1) version of the API provided a `/networklength` entpoint. It returned the length of the railway networks of the infrastructure operators.
+Calls to the endpoint cause long database queries. The endpoint was not used in the frontend. Therefore, this endpoint is not available in version 2.
 
 ## Setup
 
