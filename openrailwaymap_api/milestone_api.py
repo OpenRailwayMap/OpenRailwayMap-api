@@ -46,6 +46,7 @@ class MilestoneAPI(AbstractAPI):
             # We do not sort the result although we use DISTINCT ON because osm_id is sufficient to sort out duplicates.
             sql_query = """SELECT
                              osm_id,
+                             railway,
                              position,
                              ST_X(geom) AS latitude,
                              ST_Y(geom) As longitude,
@@ -54,6 +55,7 @@ class MilestoneAPI(AbstractAPI):
                            FROM (
                              SELECT
                                  osm_id,
+                                 railway,
                                  position,
                                  geom,
                                  route_ref,
@@ -67,6 +69,7 @@ class MilestoneAPI(AbstractAPI):
                                    -- Sort out duplicates which origin from tracks being splitted at milestones
                                    DISTINCT ON (osm_id)
                                      osm_id[1] AS osm_id,
+                                     railway[1] AS railway,
                                      position,
                                      geom[1] AS geom,
                                      route_ref,
@@ -75,6 +78,7 @@ class MilestoneAPI(AbstractAPI):
                                    FROM (
                                      SELECT
                                          array_agg(osm_id) AS osm_id,
+                                         array_agg(railway) AS railway,
                                          position AS position,
                                          array_agg(geom) AS geom,
                                          unnest(ST_ClusterWithin(geom, 25)) AS geom_collection,
@@ -84,6 +88,7 @@ class MilestoneAPI(AbstractAPI):
                                        FROM (
                                          SELECT
                                            m.osm_id,
+                                           m.railway,
                                            m.position,
                                            ST_Transform(m.geom, 4326) AS geom,
                                            t.ref AS route_ref,
