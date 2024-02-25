@@ -210,6 +210,15 @@ createuser $USERNAME
 sudo -u postgres psql -d gis -c "GRANT SELECT ON TABLES IN SCHEMA PUBLIC TO $USERNAME;"
 ```
 
+### Database updates
+
+If you apply OSM diff updates to the database, do not forget to run the `update_*.sql` scripts afterwards to refresh the materialized views:
+
+```shell
+sudo -u osmimport psql -d gis -f update_facilities.sql
+sudo -u osmimport psql -d gis -f update_milestone.sql
+```
+
 ## License
 
 This project is licensed under the terms of GPLv2 or newer. You can find a copy of version 3 of the license in the [COPYING](COPYING) file.
