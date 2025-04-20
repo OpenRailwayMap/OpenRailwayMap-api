@@ -8,7 +8,7 @@ END;
 $$ LANGUAGE plpgsql IMMUTABLE;
 
 CREATE MATERIALIZED VIEW IF NOT EXISTS openrailwaymap_ref AS
-  SELECT
+  SELECT DISTINCT ON (osm_id)
       osm_id,
       name,
       tags,
@@ -28,6 +28,11 @@ CREATE MATERIALIZED VIEW IF NOT EXISTS openrailwaymap_ref AS
         OR tags->'proposed:railway' IN ('station', 'halt', 'tram_stop', 'service_station', 'yard', 'junction', 'spur_junction', 'crossover', 'site', 'tram_stop')
         OR tags->'razed:railway' IN ('station', 'halt', 'tram_stop', 'service_station', 'yard', 'junction', 'spur_junction', 'crossover', 'site', 'tram_stop')
       );
+
+-- Create unique index in order to be able to update the materialized view concurrently
+CREATE UNIQUE INDEX IF NOT EXISTS openrailwaymap_ref_osm_id
+  ON openrailwaymap_ref
+  USING BTREE(osm_id);
 
 CREATE INDEX IF NOT EXISTS openrailwaymap_ref_railway_ref_idx
   ON openrailwaymap_ref
@@ -98,6 +103,11 @@ CREATE MATERIALIZED VIEW IF NOT EXISTS openrailwaymap_facilities_for_search AS
       OR key LIKE 'long_name:%'
       OR key LIKE 'official_name:%'
       OR key LIKE 'old_name:%';
+
+-- Create unique index in order to be able to update the materialized view concurrently
+CREATE UNIQUE INDEX IF NOT EXISTS openrailwaymap_facilities_for_search_unique_idx
+  ON openrailwaymap_facilities_for_search
+  USING btree(osm_id, name_key);
 
 CREATE INDEX IF NOT EXISTS openrailwaymap_facilities_name_index ON openrailwaymap_facilities_for_search USING gin(terms);
 

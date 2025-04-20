@@ -59,6 +59,11 @@ CREATE MATERIALIZED VIEW IF NOT EXISTS openrailwaymap_milestones AS
         ORDER BY osm_id ASC, precision DESC
       ) AS duplicates_merged;
 
+-- Create unique index in order to be able to refresh the materialized view concurrently.
+CREATE UNIQUE INDEX IF NOT EXISTS openrailwaymap_milestones_unique_idx
+  ON openrailwaymap_milestones
+  USING btree(osm_id, precision);
+
 CREATE INDEX IF NOT EXISTS openrailwaymap_milestones_geom_idx
   ON openrailwaymap_milestones
   USING gist(geom);
