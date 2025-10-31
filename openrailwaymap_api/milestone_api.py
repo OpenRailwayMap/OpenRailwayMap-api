@@ -48,8 +48,8 @@ class MilestoneAPI(AbstractAPI):
                              osm_id,
                              railway,
                              position,
-                             ST_X(geom) AS latitude,
-                             ST_Y(geom) As longitude,
+                             ST_X(geom) AS longitude,
+                             ST_Y(geom) As latitude,
                              route_ref AS ref,
                              operator
                            FROM (

@@ -89,8 +89,8 @@ Response:
     "internet_access:operator": "Deutsche Telekom AG",
     "railway:station_category": "1",
     "internet_access:fee:description": "30min kostenlos",
-    "latitude": 8.4020518,
-    "longitude": 48.9936163996939,
+    "longitude": 8.4020518,
+    "latitude": 48.9936163996939,
     "rank": 176
   }
 ]
@@ -142,8 +142,8 @@ Response:
     "osm_id": 3479484133,
     "railway": "milestone",
     "position": 18.405,
-    "latitude": 8.7064769,
-    "longitude": 49.0315238996845,
+    "longitude": 8.7064769,
+    "latitude": 49.0315238996845,
     "ref": "4201",
     "operator": "Albtal-Verkehrs-Gesellschaft mbH"
   },
@@ -151,8 +151,8 @@ Response:
     "osm_id": 3479484134,
     "railway": "milestone",
     "position": 18.2,
-    "latitude": 8.7045853,
-    "longitude": 49.0327703996842,
+    "longitude": 8.7045853,
+    "latitude": 49.0327703996842,
     "ref": "4201",
     "operator": "Albtal-Verkehrs-Gesellschaft mbH"
   }

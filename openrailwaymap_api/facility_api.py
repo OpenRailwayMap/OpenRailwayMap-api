@@ -75,7 +75,7 @@ class FacilityAPI(AbstractAPI):
                     {fields}, latitude, longitude, rank
                   FROM (
                     SELECT
-                        {fields}, ST_X(ST_Transform(geom, 4326)) AS latitude, ST_Y(ST_Transform(geom, 4326)) AS longitude, openrailwaymap_name_rank(phraseto_tsquery('simple', unaccent(openrailwaymap_hyphen_to_space(%s))), terms, route_count, railway, station) AS rank
+                        {fields}, ST_X(ST_Transform(geom, 4326)) AS longitude, ST_Y(ST_Transform(geom, 4326)) AS latitude, openrailwaymap_name_rank(phraseto_tsquery('simple', unaccent(openrailwaymap_hyphen_to_space(%s))), terms, route_count, railway, station) AS rank
                       FROM openrailwaymap_facilities_for_search
                       WHERE terms @@ phraseto_tsquery('simple', unaccent(openrailwaymap_hyphen_to_space(%s)))
                     ) AS a
@@ -93,7 +93,7 @@ class FacilityAPI(AbstractAPI):
             data = []
             # We do not sort the result although we use DISTINCT ON because osm_id is sufficient to sort out duplicates.
             sql_query = """SELECT DISTINCT ON (osm_id)
-              {}, ST_X(ST_Transform(geom, 4326)) AS latitude, ST_Y(ST_Transform(geom, 4326)) AS longitude
+              {}, ST_X(ST_Transform(geom, 4326)) AS longitude, ST_Y(ST_Transform(geom, 4326)) AS latitude 
               FROM openrailwaymap_ref
               WHERE {} = %s
               LIMIT %s;""".format(self.sql_select_fieldlist(), search_key)
