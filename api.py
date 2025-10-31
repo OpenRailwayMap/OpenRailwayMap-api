@@ -45,6 +45,7 @@ class OpenRailwayMapAPI:
         except HTTPException as e:
             return e
         except Exception as e:
+            sys.stderr.write('{}\n'.format(e))
             return InternalServerError()
         finally:
             if not response:
